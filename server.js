@@ -1,12 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const app = express();
-
-const Order = require('./models/Order');
 
 // Middleware
 app.use(cors());
@@ -18,19 +15,6 @@ if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.error('Missing required environment variables. Please check your .env file');
     process.exit(1);
 }
-
-// MongoDB Connection with better error handling
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => {
-    console.log('Successfully connected to MongoDB.');
-})
-.catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit if cannot connect to database
-});
 
 // Create Nodemailer transporter
 const transporter = nodemailer.createTransport({
