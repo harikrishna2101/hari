@@ -1,0 +1,87 @@
+class ProductManager {
+    constructor() {
+        this.products = [];
+        this.cart = cartManager;  // Use the global cartManager instance
+        this.init();
+        this.setupEventListeners();
+    }
+
+    init() {
+        // Fetch products from products.json
+        fetch('products.json')
+            .then(response => response.json())
+            .then(data => {
+                this.products = data;
+                this.displayProducts();
+            })
+            .catch(error => console.error('Error loading products:', error));
+    }
+
+    displayProducts() {
+        const productsContainer = document.getElementById('products-container');
+        if (!productsContainer) return;
+
+        productsContainer.innerHTML = this.products
+            .map(product => this.createProductCard(product))
+            .join('');
+    }
+
+    createProductCard(product) {
+        // Format the expiry date to "Month DD, YYYY" format
+        const formatDate = (dateStr) => {
+            const [month, day, year] = dateStr.split('-');
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+        };
+        
+        return `
+            <div class="product-card" data-id="${product.id}">
+                <img src="${product.image}" alt="${product.name}">
+                <h3>${product.name}</h3>
+                <p>${product.description}</p>
+                <p class="price">₹${product.price}</p>
+                <p class="expiry">Expires: ${formatDate(product.expiryDate)}</p>
+                <button class="add-to-cart-btn">
+                    Add to Cart
+                </button>
+            </div>
+        `;
+    }
+
+    setupEventListeners() {
+        // Use event delegation with a single listener
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('add-to-cart-btn')) {
+                e.preventDefault();  // Prevent any default behavior
+                const productCard = e.target.closest('.product-card');
+                if (productCard) {
+                    const productId = parseInt(productCard.dataset.id);
+                    this.addToCart(productId);
+                }
+            }
+        });
+    }
+
+    addToCart(productId) {
+        const product = this.products.find(p => p.id === productId);
+        if (product) {
+            this.cart.addItem(product);
+            this.updateCartCount();
+        }
+    }
+
+    updateCartCount() {
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            cartCount.textContent = this.cart.items.length;
+        }
+    }
+}
+
+// Initialize the product manager when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.productManager = new ProductManager();
+}); 
